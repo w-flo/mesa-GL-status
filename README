@@ -1,0 +1,5 @@
+1) clone the mesa git repository so you have a subdirectory "mesa" inside this directory
+2) run ./update.py > out.html
+3) done, result is in out.html
+
+4) note that this is licensed under AGPL, so if you change the script, you must prominently offer all users of the modified script an opportunity to obtain the modified source code free of charge.

@@ -1,0 +1,43 @@
+th {
+	background-color: #dddddd;
+}
+
+td.feature {
+	background-color: #eeeeee;
+	width: 25em;
+}
+tr:hover *.feature {
+	background-color: #cccccc
+}
+
+td.unknown, td.assigned, td.yep, td.nope {
+	width: 5em;
+	max-width: 5em;
+	text-align: center;
+}
+td.unknown {
+	background-color: #eeeeee;
+}
+tr:hover *.unknown {
+	background-color: #cccccc;
+}
+td.assigned {
+	background-color: #dddd00;
+}
+tr:hover *.assigned {
+	background-color: #ffff00;
+}
+td.yep {
+	background-color: #00cc00;
+}
+tr:hover *.yep {
+	background-color: #00ff00;
+}
+td.nope {
+	background-color: #ff0000;
+	color: #ffffff;
+}
+tr:hover *.nope {
+	background-color: #cc0000;
+	color: #ffffff;
+}
