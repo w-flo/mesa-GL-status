@@ -1,3 +1,11 @@
+table {
+	border-collapse: collapse;
+}
+
+table, th, td {
+	border: 1px #000000 solid;
+}
+
 th {
 	background-color: #dddddd;
 }
@@ -10,10 +18,14 @@ tr:hover *.feature {
 	background-color: #cccccc
 }
 
+td {
+	padding: 0.2em;
+}
 td.unknown, td.assigned, td.yep, td.nope {
-	width: 5em;
-	max-width: 5em;
+	width: 6em;
+	max-width: 6em;
 	text-align: center;
+	font-size: 0.9em;
 }
 td.unknown {
 	background-color: #eeeeee;
