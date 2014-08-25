@@ -41,7 +41,7 @@ allDoneRegex = re.compile(' --- all DONE: (([a-z0-9]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
 featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*(, )?)*)\)')
-featureStatusWipRegex = re.compile('(started|in progress) \(([a-zA-Z ]+)\)')
+featureStatusWipRegex = re.compile('(started|in progress) \(([a-zA-Z ,]+)\)')
 featureStatusDependsOnGLSLRegex = re.compile('DONE \(all drivers that support GLSL( \d+.\d+)?\)')
 featureStatusDependsOnFeatureRegex = re.compile('DONE \(all drivers that support (.*)\)')
 
