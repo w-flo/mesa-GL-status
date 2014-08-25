@@ -27,8 +27,12 @@ import time
 glStatusCommit = subprocess.check_output(["git", "rev-parse", "master"]).decode('utf-8').strip()
 download = "https://github.com/w-flo/mesa-GL-status/archive/%s.zip" % (glStatusCommit)
 
-msg = subprocess.check_output(["git", "pull"], cwd="mesa").decode('utf-8').strip()
+msg = subprocess.check_output(["git", "fetch"], cwd="mesa").decode('utf-8').strip()
 if msg != "": print(msg, file=sys.stderr)
+msg = subprocess.check_output(["git", "reset", "--hard", "origin/master"], cwd="mesa").decode('utf-8').strip()
+if msg != "": print(msg, file=sys.stderr)
+
+
 latestCommit = subprocess.check_output(["git", "rev-parse", "--short", "master"], cwd="mesa").decode('utf-8').strip()
 historyCommits = subprocess.check_output(["git", "log", "--format=%H", "docs/GL3.txt"], cwd="mesa").decode('utf-8').strip().split("\n")
 
