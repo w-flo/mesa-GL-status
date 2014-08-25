@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import datetime
+import html
 import subprocess
 import re
 import sys
@@ -265,15 +266,15 @@ for historyCommit in historyCommits:
 driverOrdering = sorted(drivers)
 
 markup = ""
-markup += '<html><head><title>Mesa GL3 Status</title><link rel="stylesheet" type="text/css" href="style.css"><body><h1>Mesa GL3 Status and History</h1><p>Green: implemented, red: not implemented, yellow: work in progress, grey: failed to parse correctly. Some of the greens, all of the greys, and any reds containing some text show more info in a tooltip when hovering the cell.</p><p>Inspired by <a href="http://creak.foolstep.com/mesamatrix/">The OpenGL vs Mesa matrix</a> by Romain "Creak" Failliot, but this script uses <a href="%s">very ugly python code (download link)</a> instead of PHP. It adds some history info to the matrix to make up for the ugly code.' % download
-markup += '<p>Generated %s, based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p></body></html>' % (time.strftime("%Y-%m-%d %H:%M:%S"), latestCommit, latestCommit)
+markup += '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Mesa GL3 Status</title><link rel="stylesheet" type="text/css" href="style.css"><body><h1>Mesa GL3 Status and History</h1><p>Green: implemented, red: not implemented, yellow: work in progress, grey: failed to parse correctly. Some of the greens, all of the greys, and any reds containing some text show more info in a tooltip when hovering the cell.</p><p>Inspired by <a href="http://creak.foolstep.com/mesamatrix/">The OpenGL vs Mesa matrix</a> by Romain "Creak" Failliot, but this script uses <a href="%s">very ugly python code (download link)</a> instead of PHP. It adds some history info to the matrix to make up for the ugly code.' % download
+markup += '<p>Generated %s, based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p>' % (time.strftime("%Y-%m-%d %H:%M:%S"), latestCommit, latestCommit)
 for glVersion in sorted(features):
-	markup += "<h2>OpenGL Version %s (GLSL %s)</h2><table><tr><th>Feature</th>" % (glVersion, glToGLSLVersion[glVersion])
+	markup += "<h2>OpenGL Version %s (GLSL %s)</h2><table><tr><th>Feature</th>" % (html.escape(glVersion), html.escape(glToGLSLVersion[glVersion]))
 	for driver in driverOrdering:
-		markup += "<th>%s</th>" % driver
+		markup += "<th>%s</th>" % html.escape(driver)
 	markup += "</tr>"
 	for feature in features[glVersion]:
-		markup += '<tr><td class=\"feature\">%s</td>' % feature.name
+		markup += '<tr><td class=\"feature\">%s</td>' % html.escape(feature.name)
 		for driverName in driverOrdering:
 			driver = drivers[driverName]
 			text = ""
@@ -310,10 +311,11 @@ for glVersion in sorted(features):
 				elif feature.dependsOn != "":
 					text = "Depend"
 					title = "Feature requires %s, but that is not done yet for this driver." % feature.dependsOn
-			markup += '<td class=\"%s\"' % cssClass
-			if title != "": markup += ' title="%s"' % title
-			markup += '>%s</td>' % text
+			markup += '<td class=\"%s\"' % html.escape(cssClass)
+			if title != "": markup += ' title="%s"' % html.escape(title).replace("\n", "&#10;")
+			markup += '>%s</td>' % html.escape(text)
 		markup += "</tr>"
 	markup += "</table>"
+markup += "</body></html>"
 
 print(markup)
