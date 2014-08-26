@@ -180,11 +180,10 @@ def parseCommit(commit):
 					continue
 
 			status = glFeatureResult.group(2).strip()
-			if status == "not started" or status == "started (currently stalled)" or status == "DONE":
-				# DONE means mesa supports this, but no drivers (in addition to the "all done" list of this GL version)
+			if status == "not started" or status == "started (currently stalled)":
 				continue
 
-			if status == "DONE (all drivers)":
+			if status == "DONE (all drivers)" or status == "DONE":
 				feature.setDone()
 				continue
 
