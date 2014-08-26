@@ -22,10 +22,12 @@ td {
 	padding: 0.2em;
 }
 td.unknown, td.assigned, td.yep, td.nope {
-	width: 6em;
-	max-width: 6em;
 	text-align: center;
 	font-size: 0.9em;
+}
+td.unknown, td.yep, td.nope {
+	width: 6em;
+	max-width: 6em;
 }
 td.unknown {
 	background-color: #eeeeee;
