@@ -28,6 +28,7 @@ import time
 glStatusCommit = subprocess.check_output(["git", "rev-parse", "master"]).decode('utf-8').strip()
 download = "https://github.com/w-flo/mesa-GL-status/archive/%s.zip" % (glStatusCommit)
 
+generationTime = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 msg = subprocess.check_output(["git", "fetch"], cwd="mesa").decode('utf-8').strip()
 if msg != "": print(msg, file=sys.stderr)
 msg = subprocess.check_output(["git", "reset", "--hard", "origin/master"], cwd="mesa").decode('utf-8').strip()
@@ -265,8 +266,8 @@ for historyCommit in historyCommits:
 driverOrdering = sorted(drivers)
 
 markup = ""
-markup += '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Mesa GL3 Status</title><link rel="stylesheet" type="text/css" href="style.css"><body><h1>Mesa GL3 Status and History</h1><p>Green: implemented, red: not implemented, yellow: work in progress, grey: failed to parse correctly. Some of the greens and any reds containing some text show more info in a tooltip when hovering the cell.</p><p>Inspired by <a href="http://creak.foolstep.com/mesamatrix/">The OpenGL vs Mesa matrix</a> by Romain "Creak" Failliot, but this script uses <a href="%s">very ugly python code (download link)</a> instead of PHP. It adds some history info to the matrix to make up for the ugly code.' % download
-markup += '<p>Generated %s, based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p>' % (time.strftime("%Y-%m-%d %H:%M:%S"), latestCommit, latestCommit)
+markup += '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Mesa GL3 Status</title><link rel="stylesheet" type="text/css" href="style.css"><body><h1>Mesa GL3 Status and History</h1><p>Green: implemented, red: not implemented, yellow: work in progress, grey: failed to parse correctly. Some of the greens and any reds containing some text show more info in a tooltip when hovering the cell. All times are in UTC.</p><p>Inspired by <a href="http://creak.foolstep.com/mesamatrix/">The OpenGL vs Mesa matrix</a> by Romain "Creak" Failliot, but this script uses <a href="%s">very ugly python code (download link)</a> instead of PHP. It adds some history info to the matrix to make up for the ugly code.' % download
+markup += '<p>Generated %s UTC, based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p>' % (generationTime, latestCommit, latestCommit)
 for glVersion in sorted(features):
 	markup += "<h2>OpenGL Version %s (GLSL %s)</h2><table><tr><th>Feature</th>" % (html.escape(glVersion), html.escape(glToGLSLVersion[glVersion]))
 	for driver in driverOrdering:
@@ -295,7 +296,7 @@ for glVersion in sorted(features):
 					commit = driver.getFeatureSince(feature)
 					if commit is not None and commit != oldestCommit:
 						gitInfo = subprocess.check_output(["git", "show", "-s", "--format=%ct|%cn|%an|%h|%s", commit], cwd="mesa").decode('utf-8').strip().split("|")
-						date = datetime.datetime.fromtimestamp(int(gitInfo[0])).strftime('%Y-%m-%d %H:%M:%S')
+						date = datetime.datetime.utcfromtimestamp(int(gitInfo[0])).strftime('%Y-%m-%d %H:%M:%S')
 						days = round((time.time() - int(gitInfo[0])) / (60*60*24))
 						if days < 30: text = "%sd" % days
 						if title != "": title += "\n"
