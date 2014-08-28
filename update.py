@@ -250,7 +250,7 @@ oldestCommit = ""
 (features, drivers) = parseCommit(latestCommit)
 i = 1
 for historyCommit in historyCommits:
-	print("%s/%s: %s" % (i, len(historyCommits), historyCommit), file=sys.stderr)
+	#print("%s/%s: %s" % (i, len(historyCommits), historyCommit), file=sys.stderr)
 	i += 1
 	(oldFeatures, oldDrivers) = parseCommit(historyCommit)
 
