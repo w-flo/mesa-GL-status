@@ -38,8 +38,8 @@ if msg != "": print(msg, file=sys.stderr)
 latestCommit = subprocess.check_output(["git", "rev-parse", "--short", "master"], cwd="mesa").decode('utf-8').strip()
 historyCommits = subprocess.check_output(["git", "log", "--format=%H", "docs/GL3.txt"], cwd="mesa").decode('utf-8').strip().split("\n")
 
-glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( --- all DONE: ([a-z0-9]+(, )?)*)?')
-allDoneRegex = re.compile(' --- all DONE: (([a-z0-9]+(, )?)*)')
+glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( --- all DONE: ([a-z0-9 \(\*\)]+(, )?)*)?')
+allDoneRegex = re.compile(' --- all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
 featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*(, )?)*)\)')
@@ -157,7 +157,7 @@ def parseCommit(commit):
 			if versionResult.lastindex >= 3 and versionResult.group(3) is not None:
 				allDoneResult = allDoneRegex.match(versionResult.group(3))
 				if allDoneResult is not None:
-					allDoneDrivers = set(allDoneResult.group(1).split(", "))
+					allDoneDrivers = set([drivername.strip(" (*)") for drivername in allDoneResult.group(1).split(", ")])
 					updateKnownDrivers(knownDrivers, allDoneDrivers)
 					for driver in allDoneDrivers: knownDrivers[driver].supportsGLSL(glslVersion)
 
