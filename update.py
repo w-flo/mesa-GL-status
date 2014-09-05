@@ -58,6 +58,7 @@ class Driver:
 		self.restrictions = {}
 		self.supportedGLSL = ""
 		self.featureSince = {}
+		self.firstTimeFound = set()
 
 	def supports(self, feature, restriction=None):
 		self.supportedFeatures.add(feature)
@@ -73,11 +74,22 @@ class Driver:
 	def supportsGLSL(self, version):
 		self.supportedGLSL = version
 
+	def isSupportedSince(self, oldDriver, feature):
+		return self.isSupported(feature) \
+				and oldDriver.isSupported(feature) \
+				and self.getRestriction(feature) == oldDriver.getRestriction(feature)
+
 	def featureSupportedSince(self, feature, commit):
 		self.featureSince[feature] = commit
 
 	def getFeatureSince(self, feature):
 		return self.featureSince[feature] if feature in self.featureSince else None
+
+	def setFirstTimeFound(self, feature):
+		self.firstTimeFound.add(feature)
+
+	def wasFirstTimeFound(self, feature):
+		return feature in self.firstTimeFound
 
 	def __str__(self):
 		return "Driver %s with %s features." % (self.name, len(self.supportedFeatures))
@@ -256,12 +268,14 @@ for historyCommit in historyCommits:
 
 	for featureList in oldFeatures.values():
 		for feature in featureList:
-			for driver in oldDrivers.values():
-				if driver.name in drivers and drivers[driver.name].isSupported(feature) \
-						and driver.isSupported(feature) \
-						and drivers[driver.name].getRestriction(feature) == driver.getRestriction(feature):
-					drivers[driver.name].featureSupportedSince(feature, historyCommit)
+			for oldDriver in oldDrivers.values():
+				if oldDriver.name not in drivers: continue
+				newDriver = drivers[oldDriver.name]
+				if newDriver.isSupportedSince(oldDriver, feature) and not newDriver.wasFirstTimeFound(feature):
+					newDriver.featureSupportedSince(feature, historyCommit)
 					oldestCommit = historyCommit
+				else:
+					newDriver.setFirstTimeFound(feature)
 
 driverOrdering = sorted(drivers)
 
