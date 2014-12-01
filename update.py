@@ -42,7 +42,7 @@ glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( --- all DONE: ([a-
 allDoneRegex = re.compile(' --- all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
-featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*(, )?)*)\)')
+featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*(( \(\*\))?, )?)*)\)')
 featureStatusWipRegex = re.compile('(started|in progress) \(([a-zA-Z ,]+)\)')
 featureStatusDependsOnGLSLRegex = re.compile('DONE \(all drivers that support GLSL( \d+.\d+)?\)')
 featureStatusDependsOnFeatureRegex = re.compile('DONE \(all drivers that support (.*)\)')
@@ -204,6 +204,7 @@ def parseCommit(commit):
 			if featureStatusDoneResult is not None:
 				doneDrivers = [x.split("/") for x in featureStatusDoneResult.group(1).split(", ")]
 				if [""] not in doneDrivers:
+					doneDrivers = [[x[0].replace(" (*)", "")] for x in doneDrivers]
 					updateKnownDrivers(knownDrivers, set([x[0] for x in doneDrivers]))
 					for doneDriver in doneDrivers:
 						knownDrivers[doneDriver[0]].supports(feature)
