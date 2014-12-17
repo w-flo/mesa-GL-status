@@ -55,3 +55,10 @@ tr:hover *.nope {
 	background-color: #cc0000;
 	color: #ffffff;
 }
+
+#changes {
+	overflow-y: scroll;
+	height: 200px;
+	border: 2px black solid;
+	background-color: #eeeeee;
+}

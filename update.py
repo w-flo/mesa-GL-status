@@ -43,7 +43,7 @@ allDoneRegex = re.compile(' --- all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
 featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*(( \(\*\))?, )?)*)\)')
-featureStatusWipRegex = re.compile('(started|in progress) \(([a-zA-Z ,]+)\)')
+featureStatusWipRegex = re.compile('(started|in progress) \((.+)\)')
 featureStatusDependsOnGLSLRegex = re.compile('DONE \(all drivers that support GLSL( \d+.\d+)?\)')
 featureStatusDependsOnFeatureRegex = re.compile('DONE \(all drivers that support (.*)\)')
 
@@ -90,6 +90,17 @@ class Driver:
 
 	def wasFirstTimeFound(self, feature):
 		return feature in self.firstTimeFound
+
+	def getChanges(self, olderDriver):
+		changes = ""
+		newFeatures = self.supportedFeatures - olderDriver.supportedFeatures
+		if len(newFeatures) != 0:
+			changes += "%s now supports %s. " % (self.name, ', '.join([x.name.strip("- ") for x in newFeatures]))
+		goneFeatures = olderDriver.supportedFeatures - self.supportedFeatures
+		if len(goneFeatures) != 0:
+			changes += "%s no longer supports %s. " % (self.name, ', '.join([x.name.strip("- ") for x in goneFeatures]))
+		if changes == "": return None
+		else: return changes
 
 	def __str__(self):
 		return "Driver %s with %s features." % (self.name, len(self.supportedFeatures))
@@ -260,6 +271,10 @@ def parseCommit(commit):
 
 
 oldestCommit = ""
+recentChanges = []
+newerDrivers = {}
+newerFeatures = {}
+newerCommit = ""
 (features, drivers) = parseCommit(latestCommit)
 i = 1
 for historyCommit in historyCommits:
@@ -278,11 +293,45 @@ for historyCommit in historyCommits:
 				else:
 					newDriver.setFirstTimeFound(feature)
 
+				if oldDriver.name in newerDrivers:
+					recentChange = newerDrivers[oldDriver.name].getChanges(oldDriver)
+					if recentChange is not None:
+						recentChanges.append((newerCommit, recentChange))
+				newerDrivers[oldDriver.name] = oldDriver
+
+			if feature.name in newerFeatures:
+				newerFeature = newerFeatures[feature.name]
+				if newerFeature.unknownComment != feature.unknownComment:
+					if newerFeature.unknownComment == "":
+						message = "%s: Removed comment." % newerFeature.name.strip(" -")
+					else:
+						message = "%s: New comment &quot;%s&quot;." % (newerFeature.name.strip(" -"), newerFeature.unknownComment)
+					if feature.unknownComment != "":
+						message += " Old comment was &quot;%s&quot;." % feature.unknownComment
+					else:
+						message += " There was no comment for this feature before this commit."
+					recentChanges.append((newerCommit, message))
+				if newerFeature.assignedTo != feature.assignedTo:
+					if newerFeature.assignedTo != "":
+						recentChanges.append((newerCommit, "%s: Work in progress now assigned to %s." % (newerFeature.name.strip(" -"), newerFeature.assignedTo)))
+					else:
+						recentChanges.append((newerCommit, "%s: No longer a work in progress." % newerFeature.name.strip(" -")))
+
+			newerFeatures[feature.name] = feature
+
+	newerCommit = historyCommit
+
 driverOrdering = sorted(drivers)
 
 markup = ""
 markup += '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Mesa GL3 Status</title><link rel="stylesheet" type="text/css" href="style.css"><body><h1>Mesa GL3 Status and History</h1><p>Green: implemented, red: not implemented, yellow: work in progress, grey: failed to parse correctly. Some of the greens and any reds containing some text show more info in a tooltip when hovering the cell. All times are in UTC.</p><p>Inspired by <a href="http://creak.foolstep.com/mesamatrix/">The OpenGL vs Mesa matrix</a> by Romain "Creak" Failliot, but this script uses <a href="%s">very ugly python code (download link)</a> instead of PHP. It adds some history info to the matrix to make up for the ugly code.' % download
 markup += '<p>Generated %s UTC, based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p>' % (generationTime, latestCommit, latestCommit)
+markup += '<h2>Changes</h2><div id="changes"><ul>'
+for (commit, change) in recentChanges:
+	gitInfo = subprocess.check_output(["git", "show", "-s", "--format=%ct", commit], cwd="mesa").decode('utf-8').strip().split("|")
+	date = datetime.datetime.utcfromtimestamp(int(gitInfo[0])).strftime('%Y-%m-%d')
+	markup += '<li><a href="http://cgit.freedesktop.org/mesa/mesa/commit/docs/GL3.txt?h=%s">%s</a>: %s</li>' % (commit, date, change)
+markup += '</div></ul>'
 for glVersion in sorted(features):
 	markup += "<h2>OpenGL Version %s (GLSL %s)</h2><table><tr><th>Feature</th>" % (html.escape(glVersion), html.escape(glToGLSLVersion[glVersion]))
 	for driver in driverOrdering:
