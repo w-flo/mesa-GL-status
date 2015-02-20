@@ -58,7 +58,7 @@ tr:hover *.nope {
 
 #changes {
 	overflow-y: scroll;
-	height: 200px;
+	height: 20em;
 	border: 2px black solid;
 	background-color: #eeeeee;
 }
