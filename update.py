@@ -29,8 +29,8 @@ glStatusCommit = subprocess.check_output(["git", "rev-parse", "master"]).decode(
 download = "https://github.com/w-flo/mesa-GL-status/archive/%s.zip" % (glStatusCommit)
 
 generationTime = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-msg = subprocess.check_output(["git", "fetch"], cwd="mesa").decode('utf-8').strip()
-if msg != "": print(msg, file=sys.stderr)
+#msg = subprocess.check_output(["git", "fetch"], cwd="mesa").decode('utf-8').strip()
+#if msg != "": print(msg, file=sys.stderr)
 msg = subprocess.check_output(["git", "reset", "--hard", "origin/master"], cwd="mesa").decode('utf-8').strip()
 if msg != "": print(msg, file=sys.stderr)
 
@@ -95,10 +95,10 @@ class Driver:
 		changes = ""
 		newFeatures = self.supportedFeatures - olderDriver.supportedFeatures
 		if len(newFeatures) != 0:
-			changes += "%s now supports %s. " % (self.name, ', '.join([x.name.strip("- ") for x in newFeatures]))
+			changes += "%s now supports %s. " % (self.name, ', '.join([featureToLink(x) for x in newFeatures]))
 		goneFeatures = olderDriver.supportedFeatures - self.supportedFeatures
 		if len(goneFeatures) != 0:
-			changes += "%s no longer supports %s. " % (self.name, ', '.join([x.name.strip("- ") for x in goneFeatures]))
+			changes += "%s no longer supports %s. " % (self.name, ', '.join([featureToLink(x) for x in goneFeatures]))
 		if changes == "": return None
 		else: return changes
 
@@ -269,13 +269,21 @@ def parseCommit(commit):
 
 	return (knownFeatures, knownDrivers)
 
-
 oldestCommit = ""
 recentChanges = []
 newerDrivers = {}
 newerFeatures = {}
 newerCommit = ""
 (features, drivers) = parseCommit(latestCommit)
+
+
+def featureToLink(feature):
+	global features
+	if True in [(feature in featureList) for featureList in features.values()]:
+		return '<a href="#%s">%s</a>' % (feature.__hash__(), feature.name.strip(" -"))
+	else:
+		return feature.name.strip(" -")
+
 i = 1
 for historyCommit in historyCommits:
 	#print("%s/%s: %s" % (i, len(historyCommits), historyCommit), file=sys.stderr)
@@ -303,9 +311,9 @@ for historyCommit in historyCommits:
 				newerFeature = newerFeatures[feature.name]
 				if newerFeature.unknownComment != feature.unknownComment:
 					if newerFeature.unknownComment == "":
-						message = "%s: Removed comment." % newerFeature.name.strip(" -")
+						message = "%s: Removed comment." % featureToLink(newerFeature)
 					else:
-						message = "%s: New comment &quot;%s&quot;." % (newerFeature.name.strip(" -"), newerFeature.unknownComment)
+						message = "%s: New comment &quot;%s&quot;." % (featureToLink(newerFeature), newerFeature.unknownComment)
 					if feature.unknownComment != "":
 						message += " Old comment was &quot;%s&quot;." % feature.unknownComment
 					else:
@@ -313,9 +321,9 @@ for historyCommit in historyCommits:
 					recentChanges.append((newerCommit, message))
 				if newerFeature.assignedTo != feature.assignedTo:
 					if newerFeature.assignedTo != "":
-						recentChanges.append((newerCommit, "%s: Work in progress now assigned to %s." % (newerFeature.name.strip(" -"), newerFeature.assignedTo)))
+						recentChanges.append((newerCommit, "%s: Work in progress now assigned to %s." % (featureToLink(newerFeature), newerFeature.assignedTo)))
 					else:
-						recentChanges.append((newerCommit, "%s: No longer a work in progress." % newerFeature.name.strip(" -")))
+						recentChanges.append((newerCommit, "%s: No longer a work in progress." % featureToLink(newerFeature)))
 
 			newerFeatures[feature.name] = feature
 
@@ -338,7 +346,7 @@ for glVersion in sorted(features):
 		markup += "<th>%s</th>" % html.escape(driver)
 	markup += "</tr>"
 	for feature in features[glVersion]:
-		markup += '<tr><td class=\"feature\">%s</td>' % html.escape(feature.name)
+		markup += '<tr><td class="feature"><a name="%s" />%s</td>' % (feature.__hash__(), html.escape(feature.name))
 		if feature.assignedTo != "":
 			markup += '<td class="assigned" title="Work in progress, assigned to %s" colspan="%s">WIP: %s</td>' % (feature.assignedTo, len(driverOrdering), feature.assignedTo)
 		elif feature.unknownComment != "":
