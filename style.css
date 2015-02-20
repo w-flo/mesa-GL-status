@@ -57,9 +57,23 @@ tr:hover *.nope {
 	color: #ffffff;
 }
 
+p {
+	max-width: 40em;
+}
+
 #changes {
 	overflow-y: scroll;
 	height: 20em;
 	border: 2px black solid;
 	background-color: #eeeeee;
+	max-width: 40em;
+}
+
+#changes li {
+	margin-top: 0.4em;
+	margin-bottom: 0.4em;
+}
+
+#changes span.author {
+	font-variant: small-caps;
 }

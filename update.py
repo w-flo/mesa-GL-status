@@ -333,12 +333,12 @@ driverOrdering = sorted(drivers)
 
 markup = ""
 markup += '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Mesa GL3 Status</title><link rel="stylesheet" type="text/css" href="style.css"><body><h1>Mesa GL3 Status and History</h1><p>Green: implemented, red: not implemented, yellow: work in progress, grey: failed to parse correctly. Some of the greens and any reds containing some text show more info in a tooltip when hovering the cell. All times are in UTC.</p><p>Inspired by <a href="http://creak.foolstep.com/mesamatrix/">The OpenGL vs Mesa matrix</a> by Romain "Creak" Failliot, but this script uses <a href="%s">very ugly python code (download link)</a> instead of PHP. It adds some history info to the matrix to make up for the ugly code.' % download
-markup += '<p>Generated %s UTC, based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p>' % (generationTime, latestCommit, latestCommit)
+markup += '<p>Generated %s UTC<br />Based on the <a href="http://cgit.freedesktop.org/mesa/mesa/tree/docs/GL3.txt?h=%s">latest Mesa git master commit at that time, %s</a>.</p>' % (generationTime, latestCommit, latestCommit)
 markup += '<h2>Changes</h2><div id="changes"><ul>'
 for (commit, change) in recentChanges:
-	gitInfo = subprocess.check_output(["git", "show", "-s", "--format=%ct", commit], cwd="mesa").decode('utf-8').strip().split("|")
+	gitInfo = subprocess.check_output(["git", "show", "-s", "--format=%ct|%s|%an", commit], cwd="mesa").decode('utf-8').strip().split("|")
 	date = datetime.datetime.utcfromtimestamp(int(gitInfo[0])).strftime('%Y-%m-%d')
-	markup += '<li><a href="http://cgit.freedesktop.org/mesa/mesa/commit/docs/GL3.txt?h=%s">%s</a>: %s</li>' % (commit, date, change)
+	markup += '<li><a href="http://cgit.freedesktop.org/mesa/mesa/commit/docs/GL3.txt?h=%s">%s</a>: %s <nobr>Author: <span class="author">%s</span></nobr>, commit message: <i>%s</i>.</li>' % (commit, date, change, gitInfo[2], gitInfo[1])
 markup += '</div></ul>'
 for glVersion in sorted(features):
 	markup += "<h2>OpenGL Version %s (GLSL %s)</h2><table><tr><th>Feature</th>" % (html.escape(glVersion), html.escape(glToGLSLVersion[glVersion]))
