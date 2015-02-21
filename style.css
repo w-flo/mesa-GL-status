@@ -1,6 +1,9 @@
+body {
+	margin-bottom: 100vh;
+}
+
 table {
 	border-collapse: collapse;
-	margin-bottom: 100vh
 }
 
 table, th, td {
