@@ -43,6 +43,7 @@ allDoneRegex = re.compile(' --- all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
 featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*( \(\*\))?(, )?)*)\)')
+featureStatusDoneCommentRegex = re.compile('DONE \((.*?)\)')
 featureStatusWipRegex = re.compile('(started|in progress) \((.+)\)')
 featureStatusDependsOnGLSLRegex = re.compile('DONE \(all drivers that support GLSL( \d+.\d+)?\)')
 featureStatusDependsOnFeatureRegex = re.compile('DONE \(all drivers that support (.*)\)')
@@ -120,6 +121,7 @@ class Feature:
 		self.glslVersion = ""
 		self.dependsOn = ""
 		self.unknownComment = ""
+		self.doneComment = ""
 
 	def setDone(self):
 		self.done = True
@@ -138,6 +140,9 @@ class Feature:
 
 	def setUnknownComment(self, comment):
 		self.unknownComment = comment
+
+	def setDoneComment(self, comment):
+		self.doneComment = comment
 
 	def __str__(self):
 		return "Feature %s (done: %s)" % (self.name, self.done)
@@ -237,6 +242,12 @@ def parseCommit(commit):
 			if featureStatusDependsOnFeatureResult is not None:
 				otherFeature = featureStatusDependsOnFeatureResult.group(1)
 				feature.dependsOnFeature(otherFeature)
+				continue
+
+			featureStatusDoneCommentResult = featureStatusDoneCommentRegex.match(status)
+			if featureStatusDoneCommentResult is not None:
+				feature.setDoneComment(status)
+				feature.setDone()
 				continue
 
 			feature.setUnknownComment(status)
@@ -365,12 +376,15 @@ for glVersion in sorted(features):
 					if driver.getRestriction(feature) is not None:
 						text = driver.getRestriction(feature)
 						title = "This feature is restricted to %s hardware. " % driver.getRestriction(feature)
+					if feature.doneComment != "":
+						text += " * "
+						title += " Comment: %s. " % feature.doneComment
 					commit = driver.getFeatureSince(feature)
 					if commit is not None and commit != oldestCommit:
 						gitInfo = subprocess.check_output(["git", "show", "-s", "--format=%ct|%cn|%an|%h|%s", commit], cwd="mesa").decode('utf-8').strip().split("|")
 						date = datetime.datetime.utcfromtimestamp(int(gitInfo[0])).strftime('%Y-%m-%d %H:%M:%S')
 						days = round((time.time() - int(gitInfo[0])) / (60*60*24))
-						if days < 30: text = "%sd" % days
+						if days < 30: text += " %sd " % days
 						if title != "": title += "\n"
 						title += "Feature since %s (%s)\nAuthor of GL3.txt change: %s\nCommitter of GL3.txt change: %s\nSubject: %s" % (date, gitInfo[3], gitInfo[2], gitInfo[1], gitInfo[4])
 				else:
