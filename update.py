@@ -218,9 +218,9 @@ def parseCommit(commit):
 
 			featureStatusDoneResult = featureStatusDoneRegex.match(status)
 			if featureStatusDoneResult is not None:
-				doneDrivers = [x.split("/") for x in featureStatusDoneResult.group(1).split(", ")]
+				driverList = featureStatusDoneResult.group(1).replace(" (*)", "")
+				doneDrivers = [x.split("/") for x in driverList.split(", ")]
 				if [""] not in doneDrivers:
-					doneDrivers = [[x[0].replace(" (*)", "")] for x in doneDrivers]
 					updateKnownDrivers(knownDrivers, set([x[0] for x in doneDrivers]))
 					for doneDriver in doneDrivers:
 						knownDrivers[doneDriver[0]].supports(feature)
