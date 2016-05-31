@@ -38,8 +38,8 @@ if msg != "": print(msg, file=sys.stderr)
 latestCommit = subprocess.check_output(["git", "rev-parse", "--short", "master"], cwd="mesa").decode('utf-8').strip()
 historyCommits = subprocess.check_output(["git", "log", "--format=%H", "docs/GL3.txt"], cwd="mesa").decode('utf-8').strip().split("\n")
 
-glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( --- all DONE: ([a-z0-9 \(\*\)]+(, )?)*)?')
-allDoneRegex = re.compile(' --- all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
+glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( ---? all DONE: ([a-z0-9 \(\*\)]+(, )?)*)?')
+allDoneRegex = re.compile(' ---? all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
 featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*( \(\*\))?(, )?)*)\)')
