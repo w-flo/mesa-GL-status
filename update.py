@@ -38,8 +38,8 @@ if msg != "": print(msg, file=sys.stderr)
 latestCommit = subprocess.check_output(["git", "rev-parse", "--short", "master"], cwd="mesa").decode('utf-8').strip()
 historyCommits = subprocess.check_output(["git", "log", "--format=%H", "docs/GL3.txt"], cwd="mesa").decode('utf-8').strip().split("\n")
 
-glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( ---? all DONE: ([a-z0-9 \(\*\)]+(, )?)*)?')
-allDoneRegex = re.compile(' ---? all DONE: (([a-z0-9 \(\*\)]+(, )?)*)')
+glVersionRegex = re.compile('GL (\d+\.\d+)(, GLSL \d+\.\d+)?( ---? all DONE: ([^,]+(, )?)*)?')
+allDoneRegex = re.compile(' ---? all DONE: (([^,]+(, )?)*)')
 
 glFeatureRegex = re.compile('  (\S.*?)  \s*(\S.*)')
 featureStatusDoneRegex = re.compile('DONE \((([a-z0-9/\+]*( \(\*\))?(, )?)*)\)')
@@ -65,6 +65,8 @@ class Driver:
 		self.supportedFeatures.add(feature)
 		if restriction is not None:
 			self.restrictions[feature] = restriction
+		elif feature in self.restrictions:
+			del self.restrictions[feature]
 
 	def isSupported(self, feature):
 		return (feature in self.supportedFeatures)
@@ -154,6 +156,7 @@ class Feature:
 		return self.name.__eq__(other.name)
 
 def updateKnownDrivers(knownDrivers, driverNames):
+	driverNames = [x.split("/")[0] for x in driverNames]
 	knownDrivers.update({driver: Driver(driver) for driver in (driverNames-knownDrivers.keys())})
 
 
@@ -187,7 +190,8 @@ def parseCommit(commit):
 				if allDoneResult is not None:
 					allDoneDrivers = set([drivername.strip(" (*)") for drivername in allDoneResult.group(1).split(", ")])
 					updateKnownDrivers(knownDrivers, allDoneDrivers)
-					for driver in allDoneDrivers: knownDrivers[driver].supportsGLSL(glslVersion)
+					for driver in allDoneDrivers:
+						knownDrivers[driver.split("/")[0]].supportsGLSL(glslVersion)
 
 		elif line.strip() != "" and line[0] != " ":
 			currentGLVersion = ""
@@ -199,8 +203,9 @@ def parseCommit(commit):
 			feature = Feature(glFeatureResult.group(1))
 			knownFeatures[currentGLVersion].append(feature)
 
-			for driver in allDoneDrivers:
-				knownDrivers[driver].supports(feature)
+			for driver in [x.split("/") for x in allDoneDrivers]:
+				knownDrivers[driver[0]].supports(feature)
+				if len(driver) > 1: knownDrivers[driver[0]].supports(feature, driver[1])
 
 			if feature.name[0:2] != "- ": headerFeature = feature
 			else:
